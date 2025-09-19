@@ -1,0 +1,479 @@
+openapi: 3.0.3
+info:
+  title: Multi-Agent AI System - Agent Contracts
+  description: Internal contracts for agent interactions and data flow
+  version: 1.0.0
+
+paths:
+  /agents/clarification/analyze:
+    post:
+      summary: Analyze user input for clarification needs
+      operationId: analyzeClarification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature_request_id
+                - original_text
+              properties:
+                feature_request_id:
+                  type: string
+                  format: uuid
+                original_text:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '200':
+          description: Clarification analysis complete
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - needs_clarification
+                  - confidence_score
+                properties:
+                  needs_clarification:
+                    type: boolean
+                  confidence_score:
+                    type: number
+                    minimum: 0.0
+                    maximum: 1.0
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - question
+                        - category
+                      properties:
+                        question:
+                          type: string
+                        category:
+                          type: string
+                          enum: [scope, technical, users, constraints]
+                        priority:
+                          type: string
+                          enum: [high, medium, low]
+                  reasoning:
+                    type: string
+
+  /agents/requirements/generate:
+    post:
+      summary: Generate requirements document from clarified input
+      operationId: generateRequirements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature_request_id
+                - clarified_text
+              properties:
+                feature_request_id:
+                  type: string
+                  format: uuid
+                clarified_text:
+                  type: string
+                previous_requirements:
+                  type: string
+                  description: For iterative updates
+      responses:
+        '200':
+          description: Requirements document generated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - document_content
+                  - functional_requirements
+                  - non_functional_requirements
+                properties:
+                  document_content:
+                    type: string
+                    description: Complete markdown document
+                  functional_requirements:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - description
+                        - priority
+                      properties:
+                        id:
+                          type: string
+                        description:
+                          type: string
+                        priority:
+                          type: string
+                          enum: [must, should, could, wont]
+                        acceptance_criteria:
+                          type: array
+                          items:
+                            type: string
+                  non_functional_requirements:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - category
+                        - requirement
+                      properties:
+                        category:
+                          type: string
+                          enum: [performance, security, usability, reliability]
+                        requirement:
+                          type: string
+                        measurement:
+                          type: string
+
+  /agents/technical/analyze:
+    post:
+      summary: Perform technical analysis and architecture recommendations
+      operationId: analyzeTechnical
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature_request_id
+                - requirements_document
+              properties:
+                feature_request_id:
+                  type: string
+                  format: uuid
+                requirements_document:
+                  type: string
+                existing_tech_stack:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Technical analysis complete
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - document_content
+                  - recommended_architecture
+                  - technology_choices
+                properties:
+                  document_content:
+                    type: string
+                    description: Complete markdown document
+                  recommended_architecture:
+                    type: object
+                    required:
+                      - pattern
+                      - components
+                      - rationale
+                    properties:
+                      pattern:
+                        type: string
+                        enum: [mvc, microservices, layered, event_driven]
+                      components:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - name
+                            - responsibility
+                          properties:
+                            name:
+                              type: string
+                            responsibility:
+                              type: string
+                            interfaces:
+                              type: array
+                              items:
+                                type: string
+                      rationale:
+                        type: string
+                  technology_choices:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - category
+                        - recommendation
+                        - justification
+                      properties:
+                        category:
+                          type: string
+                          enum: [framework, database, deployment, testing]
+                        recommendation:
+                          type: string
+                        alternatives_considered:
+                          type: array
+                          items:
+                            type: string
+                        justification:
+                          type: string
+
+  /agents/product/review:
+    post:
+      summary: Review feature from product management perspective
+      operationId: reviewProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature_request_id
+                - requirements_document
+                - technical_analysis
+              properties:
+                feature_request_id:
+                  type: string
+                  format: uuid
+                requirements_document:
+                  type: string
+                technical_analysis:
+                  type: string
+                business_context:
+                  type: string
+      responses:
+        '200':
+          description: Product review complete
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - document_content
+                  - approval_status
+                  - feedback
+                properties:
+                  document_content:
+                    type: string
+                    description: Complete markdown document
+                  approval_status:
+                    type: string
+                    enum: [approved, conditionally_approved, rejected, needs_revision]
+                  feedback:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - category
+                        - comment
+                        - severity
+                      properties:
+                        category:
+                          type: string
+                          enum: [scope, usability, business_value, feasibility]
+                        comment:
+                          type: string
+                        severity:
+                          type: string
+                          enum: [blocker, major, minor, suggestion]
+                        suggested_action:
+                          type: string
+                  business_metrics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        metric:
+                          type: string
+                        target_value:
+                          type: string
+                        measurement_method:
+                          type: string
+
+  /agents/testing/strategy:
+    post:
+      summary: Generate testing strategy and test plans
+      operationId: generateTestStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature_request_id
+                - requirements_document
+                - technical_analysis
+              properties:
+                feature_request_id:
+                  type: string
+                  format: uuid
+                requirements_document:
+                  type: string
+                technical_analysis:
+                  type: string
+                existing_test_framework:
+                  type: string
+      responses:
+        '200':
+          description: Testing strategy generated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - document_content
+                  - test_levels
+                  - test_cases
+                properties:
+                  document_content:
+                    type: string
+                    description: Complete markdown document
+                  test_levels:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - level
+                        - description
+                        - tools
+                      properties:
+                        level:
+                          type: string
+                          enum: [unit, integration, system, acceptance]
+                        description:
+                          type: string
+                        tools:
+                          type: array
+                          items:
+                            type: string
+                        coverage_target:
+                          type: number
+                          minimum: 0
+                          maximum: 100
+                  test_cases:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - title
+                        - level
+                        - steps
+                        - expected_result
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        level:
+                          type: string
+                          enum: [unit, integration, system, acceptance]
+                        priority:
+                          type: string
+                          enum: [high, medium, low]
+                        steps:
+                          type: array
+                          items:
+                            type: string
+                        expected_result:
+                          type: string
+                        prerequisites:
+                          type: array
+                          items:
+                            type: string
+
+components:
+  schemas:
+    AgentStatus:
+      type: object
+      required:
+        - agent_id
+        - role
+        - status
+        - current_task
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [clarification, requirements, technical, product, testing]
+        status:
+          type: string
+          enum: [idle, active, completed, error]
+        current_task:
+          type: string
+        progress_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        estimated_completion:
+          type: string
+          format: date-time
+
+    WorkflowStatus:
+      type: object
+      required:
+        - workflow_id
+        - feature_request_id
+        - current_stage
+        - overall_status
+      properties:
+        workflow_id:
+          type: string
+          format: uuid
+        feature_request_id:
+          type: string
+          format: uuid
+        current_stage:
+          type: string
+          enum: [clarification, requirements, analysis, review, testing, completed]
+        overall_status:
+          type: string
+          enum: [running, completed, failed, paused]
+        stages:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - status
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+                enum: [pending, active, completed, failed]
+              agent_id:
+                type: string
+                format: uuid
+              started_at:
+                type: string
+                format: date-time
+              completed_at:
+                type: string
+                format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+      properties:
+        error_code:
+          type: string
+          enum: [INVALID_INPUT, AGENT_FAILURE, TIMEOUT, RESOURCE_ERROR]
+        message:
+          type: string
+        details:
+          type: object
+        retry_possible:
+          type: boolean
+        estimated_retry_delay:
+          type: number
+          description: Seconds to wait before retry
